@@ -1,0 +1,69 @@
+# ─────────────────────────────────────────────
+#  Secrets: NIEMALS committen (.env.example ist die Vorlage)
+# ─────────────────────────────────────────────
+.env
+**/.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+id_rsa*
+secrets.*
+credentials.*
+
+# ─────────────────────────────────────────────
+#  Dependencies
+# ─────────────────────────────────────────────
+node_modules/
+**/node_modules/
+.venv/
+**/.venv/
+venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+
+# ─────────────────────────────────────────────
+#  Läufe und generierte Outputs
+# ─────────────────────────────────────────────
+motion-runs/
+output/
+**/renders/
+**/frames/
+**/previews/
+**/snapshots/
+dist/
+build/
+*.log
+.cache/
+
+# ─────────────────────────────────────────────
+#  Medien & große Binaries
+# ─────────────────────────────────────────────
+*.mp4
+*.mov
+*.mkv
+*.avi
+*.wav
+*.mp3
+*.m4a
+*.aac
+*.webm
+*.zip
+*.tar
+*.gz
+*.psd
+*.sketch
+# Ausnahme: das Teaser-Bild der README
+!docs/teaser.png
+
+# ─────────────────────────────────────────────
+#  OS / Editor / Scratch
+# ─────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+scratchpad/
