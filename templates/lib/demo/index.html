@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, height=1080">
+    <title>Nordlicht Notes · Demo der Bibliothek</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <!-- Bibliothek: lib/ ist eine Kopie von ../ (npm run lib), nie hier ändern -->
+    <link rel="stylesheet" href="lib/tokens.css">
+    <script src="lib/core.js"></script>
+    <script src="lib/camera.js"></script>
+    <script src="lib/motion.js"></script>
+    <!-- Zeitplan: einzige Zeitquelle für Bild und Ereignisliste -->
+    <script src="plan.js"></script>
+    <style>
+      @font-face { font-family: "Inter"; src: url("assets/fonts/inter-400.woff2") format("woff2"); font-weight: 400; font-style: normal; }
+      @font-face { font-family: "Inter"; src: url("assets/fonts/inter-500.woff2") format("woff2"); font-weight: 500; font-style: normal; }
+      @font-face { font-family: "Inter"; src: url("assets/fonts/inter-600.woff2") format("woff2"); font-weight: 600; font-style: normal; }
+
+      /* Marke „Nordlicht Notes“ (fiktiv): überschreibt nur die Platzhalter aus lib/tokens.css */
+      :root {
+        --mv-bg: #f3f5f6;
+        --mv-ink: #0f1419;
+        --mv-label: #39424b;
+        --mv-muted: #7c8792;
+        --mv-ui-text: #1b232b;
+        --mv-ui-muted: #66717c;
+        --mv-accent: #0f9a78;
+        --mv-acc-hi: #b9f5df;
+        --mv-say-gray: #a4adb5;
+        --mv-ink-grad: linear-gradient(180deg, #0f1419 26%, #3b4550 67%, #85909b 109%);
+        --mv-acc-grad: linear-gradient(180deg, #0a7a5f 26%, #0f9a78 67%, #52d1aa 109%);
+        --mv-font: "Inter", sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: #f3f5f6; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; font-family: "Inter", sans-serif; }
+
+      /* Notiz-Karte (Raster-px 1280 × 720) */
+      #b-card { overflow: hidden; }
+      #b-card-in { position: absolute; left: 0; top: 0; width: 560px; height: 232px; }
+      .b-head { position: absolute; left: 28px; top: 22px; right: 28px; height: 26px; display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 500; color: var(--mv-ui-muted); }
+      .b-head .tile { width: 26px; height: 26px; border-radius: 7px; background: var(--mv-accent); display: flex; align-items: center; justify-content: center; }
+      .b-head .day { margin-left: auto; font-weight: 400; }
+      .b-title { position: absolute; left: 28px; top: 62px; font-size: 26px; line-height: 32px; font-weight: 600; letter-spacing: -0.02em; color: var(--mv-ink); }
+      .b-row { position: absolute; left: 28px; height: 26px; display: flex; align-items: center; gap: 14px; font-size: 18px; color: var(--mv-ui-text); white-space: nowrap; }
+      .b-row .box { width: 20px; height: 20px; border-radius: 6px; border: 2px solid #c3cad1; display: flex; align-items: center; justify-content: center; }
+      .b-row.done .box { background: var(--mv-accent); border-color: var(--mv-accent); }
+      .b-row.done span { color: var(--mv-ui-muted); }
+      #b-glyph { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; opacity: 0; }
+    </style>
+  </head>
+  <body>
+    <!-- Demo der Bibliothek templates/lib: 10 s, 1920 × 1080, 30 fps. Aussage mit Wort-Reveal und Verlauf, Whip, Match-Cut,
+         Icon-Kette, Kamera-Drift. Die Sichtbarkeit der Einstellungen steuert nur render() (eine Stelle). -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="10" data-width="1920" data-height="1080">
+      <div class="mv-scene" id="film">
+        <div class="mv-stage" id="stage">
+          <div class="mv-layer" id="a-cam"></div>
+          <div class="mv-layer" id="b-cam"></div>
+          <div class="mv-layer" id="b-text"></div>
+          <div class="mv-layer" id="c-cam"></div>
+          <div class="mv-layer" id="c-text"></div>
+        </div>
+      </div>
+    </div>
+    <script>
+      (function () {
+        const P = window.PLAN;
+        const $ = (id) => document.getElementById(id);
+        const APP_GLYPH = (size) => `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3.5h8l3.5 3.5v13.5h-11.5z" /><path d="M14.5 3.5v3.5h3.5" /><path d="M9.5 12h5.5M9.5 15.5h3.5" /></svg>`;
+        const APP_TILE = `<div style="width:100%;height:100%;border-radius:var(--mv-r-tile);background:var(--mv-accent);display:flex;align-items:center;justify-content:center">${APP_GLYPH("56%")}</div>`;
+        const CHECK = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#ffffff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>`;
+        const chainSpec = Object.assign({}, P.C.chain, { items: P.C.chain.items.map((it, i) => (i === 0 ? { tile: { svg: APP_TILE } } : it)) });
+        const sc = P.B.card;
+
+        function build() {
+          // A: Aussage Stufe H, mittig
+          $("a-cam").innerHTML = MV.sayHTML(P.A.say.text, { id: "a-say", stage: "H", accent: P.A.say.accent });
+          // B: Karte (eigene Inhalte, kein Platzhalter) und Aussage in der Lesezone
+          $("b-cam").innerHTML = `
+            <div class="mv-card" id="b-card" style="left:${sc.x}px;top:${sc.y}px;width:${sc.w}px;height:${sc.h}px">
+              <div id="b-card-in">
+                <div class="b-head"><div class="tile">${APP_GLYPH(16)}</div><span>Nordlicht Notes</span><span class="day">Heute, 09:12</span></div>
+                <div class="b-title">Wochenplan</div>
+                <div class="b-row done" style="top:112px"><div class="box">${CHECK}</div><span>Pitch-Deck finalisieren</span></div>
+                <div class="b-row" style="top:148px"><div class="box"></div><span>Team-Sync vorbereiten</span></div>
+                <div class="b-row" style="top:184px"><div class="box"></div><span>Flug nach Oslo buchen</span></div>
+              </div>
+              <div id="b-glyph">${APP_GLYPH("56%")}</div>
+            </div>`;
+          $("b-text").innerHTML = MV.sayHTML(P.B.say.text, { id: "b-say", stage: "Z", accent: P.B.say.accent });
+          // C: Icon-Kette und Aussage in der Lesezone
+          $("c-cam").innerHTML = MV.chainHTML(chainSpec);
+          $("c-text").innerHTML = MV.sayHTML(P.C.say.text, { id: "c-say", stage: "Z", accent: P.C.say.accent });
+        }
+
+        let blur = null;
+        const fAB = MV.frameIndex(P.CUT_AB), fBC = MV.frameIndex(P.CUT_BC);
+        const shadow = (k) => `0 20px 60px rgba(20,20,20,${(0.07 * k).toFixed(4)}), 0 2px 8px rgba(20,20,20,${(0.03 * k).toFixed(4)}), 0 0 0 1px rgba(0,0,0,${(0.025 * k).toFixed(4)})`;
+
+        function renderA(t) {
+          const z = MV.cam.zoom(t, P.A.zoom).v;
+          const w = MV.whip("left", t, P.CUT_AB, { phase: "out" });
+          MV.cam.apply($("a-cam"), z, P.A.origin[0], P.A.origin[1], w.x, 0);
+          MV.cam.motionBlur(blur.a, w.vx, 0, MV.cam.BLUR.whip);
+          MV.say($("a-say"), t, P.A.say.t0);
+        }
+
+        function renderB(t) {
+          const [ox, oy] = P.B.origin;
+          const w = MV.whip("left", t, P.CUT_AB, { phase: "in" });
+          const z = MV.cam.zoom(t, P.B.zoom).v;
+          MV.cam.apply($("b-cam"), z, ox, oy, w.x, 0);
+          MV.cam.motionBlur(blur.b, w.vx, 0, MV.cam.BLUR.whip);
+          // Lesezone: eigene Ebene, Zoom ab Einsatz der Aussage (Parallaxe 1,5 %/s), Whip-Versatz wie das Bild
+          const zt = MV.cam.zoom(t, { t0: P.B.say.t0, rate: 0.015 }).v;
+          MV.cam.apply($("b-text"), zt, ox, oy, w.x, 0);
+          MV.cam.motionBlur(blur.bt, w.vx, 0, MV.cam.BLUR.whip);
+          MV.say($("b-say"), t, P.B.say.t0, { exit: P.B.say.exit });
+          // Match-Cut: die Karte wird zur App-Kachel, genau an Lage und Größe des ersten Halts der Kette
+          const card = $("b-card");
+          const tgt = MV.chainStart(chainSpec);
+          const toWorld = (r) => ({ x: (r.x - (1 - z) * ox - w.x) / z, y: (r.y - (1 - z) * oy) / z, w: r.w / z, h: r.h / z });
+          const T = toWorld(tgt);
+          const m = MV.matchMorph(
+            { x: sc.x, y: sc.y, w: sc.w, h: sc.h, r: sc.r, color: "var(--mv-card)" },
+            { x: T.x, y: T.y, w: T.w, h: T.h, r: (0.24 * tgt.w) / z, color: "var(--mv-accent)" },
+            t, P.B.morph.t0, P.B.morph.dur, MV.E.sine // Sinus: erreicht das Ziel genau am Schnitt, kein Stand davor
+          );
+          card.style.left = m.x.toFixed(3) + "px";
+          card.style.top = m.y.toFixed(3) + "px";
+          card.style.width = m.w.toFixed(3) + "px";
+          card.style.height = m.h.toFixed(3) + "px";
+          card.style.borderRadius = m.r.toFixed(3) + "px";
+          card.style.background = m.color;
+          card.style.boxShadow = shadow(1 - m.u);
+          $("b-card-in").style.opacity = (1 - MV.clamp(m.u / 0.4)).toFixed(4);
+          $("b-glyph").style.opacity = MV.clamp((m.u - 0.6) / 0.4).toFixed(4);
+          MV.cam.motionBlur(blur.card, m.vx * z, m.vy * z, MV.cam.BLUR.element);
+        }
+
+        function renderC(t) {
+          const [ox, oy] = P.C.origin;
+          const z = MV.cam.zoom(t, P.C.zoom).v;
+          MV.cam.apply($("c-cam"), z, ox, oy);
+          MV.chain($("c-chain"), t, P.C.t0, chainSpec);
+          const zt = MV.cam.zoom(t, { t0: P.C.say.t0, rate: 0.015 }).v;
+          MV.cam.apply($("c-text"), zt, ox, oy);
+          MV.say($("c-say"), t, P.C.say.t0);
+        }
+
+        // Sichtbarkeit der Einstellungen: nur hier, nach ganzen Frames
+        function render(t) {
+          const f = MV.frameIndex(t);
+          const inA = f < fAB, inB = f >= fAB && f < fBC, inC = f >= fBC;
+          $("a-cam").style.visibility = inA ? "inherit" : "hidden";
+          $("b-cam").style.visibility = inB ? "inherit" : "hidden";
+          $("b-text").style.visibility = inB ? "inherit" : "hidden";
+          $("c-cam").style.visibility = inC ? "inherit" : "hidden";
+          $("c-text").style.visibility = inC ? "inherit" : "hidden";
+          if (inA) renderA(t);
+          if (inB) renderB(t);
+          if (inC) renderC(t);
+        }
+
+        document.fonts.ready.then(() => {
+          build();
+          blur = {
+            a: MV.cam.blur($("a-cam"), "mv-a-whip"),
+            b: MV.cam.blur($("b-cam"), "mv-b-whip"),
+            bt: MV.cam.blur($("b-text"), "mv-bt-whip"),
+            card: MV.cam.blur($("b-card"), "mv-card-mb"),
+          };
+          render(0);
+          const tl = gsap.timeline({ paused: true });
+          const proxy = { t: 0 };
+          tl.to(proxy, { t: P.DUR, duration: P.DUR, ease: "none", onUpdate: () => render(proxy.t) }, 0);
+          window.__timelines["main"] = tl;
+        });
+      })();
+    </script>
+  </body>
+</html>

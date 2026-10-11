@@ -1,0 +1,161 @@
+{
+ "_hinweis": "Segmentplan für scripts/ton/musik_schnitt.py. Kopieren nach film/ton-plan.json, Zeiten aus der eigenen Takt-Karte (--takt-karte) und ereignisse.json eintragen. Pfade relativ zu dieser Datei. Felder mit _ werden ignoriert.",
+ "_felder": {
+  "quelle": "Musik-Take (WAV). Nie strecken, nie in der Tonhöhe ändern.",
+  "kit": "Ordner mit NN_typ_a..d.wav (für Effekte im Plan: Hall-Akzent, Reverse-Swell, Sub).",
+  "ausgabe": "Ziel-WAV; {variante} wird durch --variante ersetzt. Daneben entsteht <ausgabe>.segmente.json für ton_pruefen.py.",
+  "dauer": "Filmlänge in s.",
+  "takt": "bpm = Hinweis für die Erkennung (± 4 %); eins/schlag_s = gemessene Werte, ersetzen die Erkennung (bei Konfidenz < 0,2 Pflicht; bpm immer eintragen, sonst droht halbes oder doppeltes Tempo); schlaege_pro_takt.",
+  "raster": "Film-Raster (dasselbe BPM wie MLM.beat in der Komposition): bpm, versatz (s), ab (s) = ab hier gilt R7.",
+  "pegel_db / decke_db / decke_extra": "Gain vor dem Limiter, Musik-Decke in dBFS, Zuschlag je Filmzeit [[t, dB], …] (z. B. letzter Drop +1,5 dB).",
+  "crossfade_ms": "Überblendung an jeder Naht (15 bis 30).",
+  "stille": "echte Stille-Fenster [[von, bis], …]: dort dürfen Lücken und freie Längen liegen (R1), ton_pruefen.py prüft dort keine Löcher.",
+  "ende_fenster": "s vor Filmende, in denen R5 nach gekachelten Stücken sucht.",
+  "segmente[].takt / schlag": "Quell-Takt (Index aus der Takt-Karte) und Schlag im Takt (0 = Eins), dessen Beginn auf der Filmzeit liegt.",
+  "segmente[].film | film_schlag": "Filmzeit des Ankers in s ODER in Rasterschlägen. Fehlt beides: Anschluss an das Ende des Vorgängers.",
+  "segmente[].vorlauf_takte | vorlauf_s": "Quelle beginnt so viel vor dem Anker (z. B. Intro vor dem Drop).",
+  "segmente[].takte | schlaege | bis_film | bis_ende": "Länge. Ohne Angabe: bis zum nächsten verankerten Segment bzw. Filmende. bis_ende = bis zum Ende des Takes (natürlicher Schluss).",
+  "segmente[].frei + grund": "Freie Länge (Fermate, Fläche ohne Puls, Teiltakt). Nur mit Begründung, sonst verletzt die Naht R1. Beispiel Fermate: {\"takt\": 27, \"schlag\": 3, \"frei\": true, \"grund\": \"ein Schlag Fläche ohne Puls\"} zwischen zwei verankerten Segmenten.",
+  "segmente[].wiederholung": "Begründung für eine bewusste Wiederholung innerhalb von 30 s (R2 wird GELB statt ROT).",
+  "segmente[].gain_db / praesenz_db / breite_db": "Pegel, Präsenz-Shelf ab 3 kHz, Seitensignal (für den lautesten Drop: +2 bis +4 dB).",
+  "segmente[].xf_ms / fade_out_ms / einblende_s / ausblende_s / hochpass_fahrt": "Überblendung in dieses Segment, Ausblende ohne Anschluss, Einblende am Filmanfang, lineare Ausblende des letzten Segments, Hochpass-Fahrt [f0, f1] Hz.",
+  "effekte[]": "tiefpass_dip {von, bis, hz, db, rampe_s, aus_s} · hall_swell {von, bis, rt60, anteil} · hall_fahne {ab, rt60, anteil} · reverse_swell {datei, von, bis, ende, rt60, peak_db} · akzent {t, dateien:[{datei, von, bis, gain_db}], rt60, peak_db} · takt_impact {t, takt, schlaege, rt60, anteil, gain_db} · sub {t, datei, semis, gleiten, peak_db, laenge}",
+  "varianten": "A/B: je Variante zusätzliche segmente und effekte, gewählt mit --variante; variante_standard ohne Angabe."
+ },
+ "quelle": "assets/sfx/musik_take.wav",
+ "kit": "assets/sfx/kit",
+ "ausgabe": "assets/sfx/musik_schnitt_{variante}.wav",
+ "dauer": 30.0,
+ "takt": {
+  "bpm": 120,
+  "schlaege_pro_takt": 4,
+  "eins": null,
+  "schlag_s": null
+ },
+ "raster": {
+  "bpm": 120,
+  "versatz": 0.0,
+  "ab": 8.0
+ },
+ "pegel_db": 0.0,
+ "decke_db": -6.0,
+ "decke_extra": [
+  [
+   0,
+   0
+  ],
+  [
+   15.95,
+   0
+  ],
+  [
+   16.0,
+   1.5
+  ],
+  [
+   23.7,
+   1.5
+  ],
+  [
+   23.75,
+   0
+  ],
+  [
+   30.0,
+   0
+  ]
+ ],
+ "crossfade_ms": 15,
+ "ende_fenster": 8.0,
+ "stille": [],
+ "segmente": [
+  {
+   "takt": 8,
+   "film": 8.0,
+   "vorlauf_s": 8.0,
+   "takte": 4,
+   "notiz": "Intro, Drop 1 auf dem Schnitt 8,0 s (Takt 8 der Quelle), Groove"
+  },
+  {
+   "takt": 20,
+   "takte": 4,
+   "notiz": "Groove B im Anschluss (ganze Takte, Naht auf der Eins)"
+  }
+ ],
+ "effekte": [
+  {
+   "typ": "tiefpass_dip",
+   "von": 23.7,
+   "bis": 24.0,
+   "hz": 1200,
+   "db": -5,
+   "rampe_s": 0.3,
+   "aus_s": 0.06
+  }
+ ],
+ "variante_standard": "B",
+ "varianten": {
+  "A": {
+   "segmente": [
+    {
+     "takt": 28,
+     "takte": 2,
+     "notiz": "A: zwei Takte Schluss-Groove, dann Hall-Fahne (Trailer-Schluss)"
+    }
+   ],
+   "effekte": [
+    {
+     "typ": "reverse_swell",
+     "datei": "03_swoosh_b",
+     "von": 0,
+     "bis": 0.8,
+     "ende": 28.0,
+     "rt60": 1.8,
+     "peak_db": -13
+    },
+    {
+     "typ": "sub",
+     "t": 28.0,
+     "datei": "07_subthud_a",
+     "semis": -5,
+     "gleiten": -2,
+     "peak_db": -8,
+     "laenge": 1.4
+    },
+    {
+     "typ": "hall_fahne",
+     "ab": 27.0,
+     "rt60": 3.0,
+     "anteil": 0.8
+    }
+   ]
+  },
+  "B": {
+   "segmente": [
+    {
+     "takt": 28,
+     "bis_ende": true,
+     "ausblende_s": 0.4,
+     "notiz": "B: Schluss-Phrase des Takes am Stück (natürliches Ende)"
+    }
+   ],
+   "effekte": [
+    {
+     "typ": "reverse_swell",
+     "datei": "05_sparkle_c",
+     "von": 0,
+     "bis": 0.6,
+     "ende": 24.0,
+     "rt60": 1.3,
+     "peak_db": -14
+    },
+    {
+     "typ": "hall_fahne",
+     "ab": 26.0,
+     "rt60": 3.0,
+     "anteil": 0.5
+    }
+   ]
+  }
+ }
+}

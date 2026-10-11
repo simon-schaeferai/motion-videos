@@ -7,7 +7,8 @@
 #
 # Ergebnis in <lauf-ordner>/analyse/:
 #   referenz.mp4        (+faststart)
-#   frames/f_0001.jpg … (3 fps, Zeit = (N-1)/3)
+#   frames/f_0001.jpg … (3 fps: je Drittelsekunde das erste echte Frame der Referenz)
+#   frames/zeiten.csv   (datei,zeit_s,frame: exakte Zeit und Frame-Index der Referenz je Bild; nur diese Zeiten nutzen)
 #   audio.wav           (mono, 16 kHz; nur wenn die Referenz Ton hat)
 # und eine Ausgabe mit Auflösung, fps, Dauer, Ton ja/nein.
 #
@@ -82,7 +83,14 @@ if ! ff -i "$ROH" -map 0:v:0 -map '0:a:0?' -c copy -movflags +faststart "$A/refe
   ff -i "$ROH" -map 0:v:0 -map '0:a:0?' -c:v libx264 -crf 18 -pix_fmt yuv420p -c:a aac -b:a 192k -movflags +faststart "$A/referenz.mp4"
 fi
 
-ff -i "$A/referenz.mp4" -vf fps=3 -q:v 3 "$A/frames/f_%04d.jpg"
+# Frames mit exakter Zeit: je Drittelsekunde das erste Original-Frame (kein fps-Filter, der würde Zeiten verschieben;
+# bei 24 fps lagen die Bilder sonst 0,125 s neben (N-1)/3). showinfo liefert die echte Zeit jedes Bildes.
+START=$(ffprobe -v error -select_streams v:0 -show_entries stream=start_time -of csv=p=0 "$A/referenz.mp4" | head -1)
+case "$START" in ''|N/A) START=0 ;; esac
+nice -n 10 ffmpeg -hide_banner -nostats -loglevel info -y -i "$A/referenz.mp4" \
+  -vf "select='isnan(prev_selected_t)+gte(floor((t-$START)*3+0.001)\,floor((prev_selected_t-$START)*3+0.001)+1)',showinfo" \
+  -vsync 0 -q:v 3 "$A/frames/f_%04d.jpg" 2>"$TMP/showinfo.log" \
+  || { echo "Frames ziehen fehlgeschlagen:" >&2; grep -iv showinfo "$TMP/showinfo.log" | tail -5 >&2; exit 1; }
 
 TON=nein
 if [ -n "$(ffprobe -v error -select_streams a -show_entries stream=index -of csv=p=0 "$A/referenz.mp4")" ]; then
@@ -94,7 +102,14 @@ W_H=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of
 FPS=$(ffprobe -v error -select_streams v:0 -show_entries stream=r_frame_rate -of csv=p=0 "$A/referenz.mp4")
 FPS_DEZ=$(awk -F/ '{ if ($2>0) printf "%.3f", $1/$2; else print $1 }' <<<"$FPS")
 DAUER=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$A/referenz.mp4")
-N=$(ls "$A/frames" | wc -l | tr -d ' ')
+awk -v s="$START" -v fps="$FPS_DEZ" 'BEGIN { print "datei,zeit_s,frame" }
+  /Parsed_showinfo/ && /pts_time:/ {
+    for (i = 1; i <= NF; i++) if ($i ~ /^pts_time:/) { split($i, a, ":"); t = a[2] - s }
+    n++; printf "f_%04d.jpg,%.4f,%d\n", n, t, int(t * fps + 0.5)
+  }' "$TMP/showinfo.log" > "$A/frames/zeiten.csv"
+N=$(ls "$A/frames" | grep -c '^f_.*\.jpg$' | tr -d ' ')
+Z=$(( $(wc -l < "$A/frames/zeiten.csv") - 1 ))
+[ "$Z" -eq "$N" ] || echo "Warnung: zeiten.csv hat $Z Zeilen, aber $N Bilder. Zeiten von Hand prüfen." >&2
 
 echo ""
 echo "Referenz bereit: $A/referenz.mp4"
@@ -102,4 +117,4 @@ echo "  Auflösung  $W_H"
 echo "  fps        $FPS_DEZ ($FPS)"
 echo "  Dauer      $(printf '%.2f' "$DAUER") s"
 echo "  Ton        $TON$([ "$TON" = ja ] && echo " → $A/audio.wav")"
-echo "  Frames     $N in $A/frames/ (3 fps, Zeit = (N-1)/3)"
+echo "  Frames     $N in $A/frames/ (3 fps; exakte Zeit je Bild in $A/frames/zeiten.csv)"

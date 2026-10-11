@@ -1,0 +1,188 @@
+{
+ "_hinweis": "Cue-Liste für scripts/ton/ton_bauen.py. Kopieren nach film/cues.json. Jeder Effekt hängt an einem Ereignis aus ereignisse.json (R8), es gibt keine freien Zeiten. Pfade relativ zu \"projekt\". Felder mit _ werden ignoriert.",
+ "_felder": {
+  "projekt": "HyperFrames-Projekt (relativ zu dieser Datei); src-Pfade in audio.html sind relativ dazu.",
+  "ereignisse / kit / samples / html": "Ereignisliste (Standard im Lauf-Ordner: ../ereignisse.json, wenn diese Datei in film/ liegt), Kit-Ordner (NN_typ_a..d.wav), Ziel für gerenderte Einzel-Samples (nur generierte Dateien), Ziel-Composition.",
+  "dauer / fps / breite / hoehe": "Filmlänge (s), Bildrate für die Frame-Toleranz, Format der Sub-Composition.",
+  "zerlegen": "Familien, deren Kit-Dateien mehrere Schläge enthalten: automatisch in Einzel-Samples zerlegen. Vorher mit --zerlegen-vorschlag <familie> prüfen; unsaubere Schnitte als slices von Hand.",
+  "slices": "Einzel-Samples von Hand: {\"name\": {\"fam\": \"click\", \"datei\": \"01_click_c\", \"von\": 0.0, \"bis\": 0.04}}. Reihenfolge = Rotationsreihenfolge.",
+  "familien": "Je Familie: peak (dBFS je Sample), anker (onset | peak | max | ende), hochpass (Hz oder null), duck (true | \"ganz\" | false), kurz (30 % Ausblende), pan (false = immer Mitte). Standard: click/pop/swoosh/typing/sparkle/chime/subthud/flutter.",
+  "ducking_db / master_decke_db": "Musik unter Klicks und Tippen (-2 bis -3 dB); Master-Limiter. Mit --sim … --decke auto wird die Decke so gesenkt, dass True Peak nach AAC < -1 dBTP.",
+  "betten[]": "Durchgehende Spuren: id, src ({variante} wird durch --variante ersetzt), start, dauer, musik (true = duckt), lane [[t_film, v], …], rms_db oder pegel_db, fx [[\"highpass\", {…}], …].",
+  "cues[]": "id, ereignis (id aus ereignisse.json), fam; optional: variante (Buchstabe a..d oder Slice-Name), semis (Halbtöne; ohne Angabe Rotation in ±2), semis_absolut (Tonleiter über 800 Hz), pan, peak, dauer, fade_out, anker, ausschnitt [von, bis] in der Datei, datei (beliebige WAV statt Kit, ohne Rotation), versatz (s, nur für Vorlauf wie Riser), duck, duck_span, hochpass, notiz."
+ },
+ "projekt": ".",
+ "ereignisse": "../ereignisse.json",
+ "kit": "assets/sfx/kit",
+ "samples": "assets/sfx/kit-render",
+ "html": "compositions/audio.html",
+ "dauer": 30.0,
+ "fps": 30,
+ "breite": 1920,
+ "hoehe": 1080,
+ "zerlegen": [
+  "click",
+  "pop"
+ ],
+ "familien": {
+  "click": {
+   "peak": -2.0
+  },
+  "riser": {
+   "hochpass": null,
+   "pan": false
+  }
+ },
+ "ducking_db": -2.5,
+ "master_decke_db": -3.0,
+ "betten": [
+  {
+   "id": "au-musik",
+   "src": "assets/sfx/musik_schnitt_{variante}.wav",
+   "start": 0,
+   "dauer": 30.0,
+   "musik": true,
+   "lane": [
+    [
+     0,
+     1
+    ],
+    [
+     29.6,
+     1
+    ],
+    [
+     30.0,
+     0
+    ]
+   ],
+   "notiz": "Musik aus musik_schnitt.py"
+  },
+  {
+   "id": "au-raum",
+   "src": "assets/sfx/raumton.wav",
+   "start": 0,
+   "dauer": 30.0,
+   "rms_db": -56,
+   "lane": [
+    [
+     0,
+     0
+    ],
+    [
+     0.4,
+     1
+    ],
+    [
+     29.3,
+     1
+    ],
+    [
+     30.0,
+     0
+    ]
+   ],
+   "fx": [
+    [
+     "highpass",
+     {
+      "frequency": 160,
+      "q": 0.707,
+      "poles": "2"
+     }
+    ],
+    [
+     "lowpass",
+     {
+      "frequency": 5000,
+      "q": 0.707,
+      "poles": "2"
+     }
+    ]
+   ],
+   "notiz": "Raumton, sehr leise"
+  }
+ ],
+ "cues": [
+  {
+   "id": "au-toggle",
+   "ereignis": "toggle",
+   "fam": "click",
+   "notiz": "Schalter rastet ein"
+  },
+  {
+   "id": "au-karte-1",
+   "ereignis": "karte-1",
+   "fam": "pop",
+   "semis": 0,
+   "semis_absolut": true,
+   "notiz": "erste Karte"
+  },
+  {
+   "id": "au-tippen-1",
+   "ereignis": "tippen-1",
+   "fam": "typing",
+   "variante": "a",
+   "ausschnitt": [
+    0.05,
+    0.91
+   ],
+   "notiz": "Tippen 0,8 s"
+  },
+  {
+   "id": "au-schnitt-b2",
+   "ereignis": "schnitt-b2",
+   "fam": "swoosh",
+   "notiz": "Whoosh in den Schnitt (Anker = lautester Punkt)"
+  },
+  {
+   "id": "au-ki-1",
+   "ereignis": "ki-1",
+   "fam": "sparkle",
+   "variante": "a",
+   "peak": -12,
+   "notiz": "KI-Moment"
+  },
+  {
+   "id": "au-riser",
+   "ereignis": "hit-1",
+   "datei": "assets/sfx/riser.wav",
+   "ausschnitt": [
+    0,
+    1.7
+   ],
+   "anker": "ende",
+   "versatz": -0.2,
+   "fam": "riser",
+   "peak": -15,
+   "notiz": "Riser bricht 0,2 s vor dem Hit ab (davor Stille)"
+  },
+  {
+   "id": "au-hit-1",
+   "ereignis": "hit-1",
+   "fam": "subthud",
+   "variante": "a",
+   "peak": -5,
+   "dauer": 0.85,
+   "fade_out": 0.5,
+   "notiz": "größter Hit"
+  },
+  {
+   "id": "au-klick-final",
+   "ereignis": "klick-final",
+   "fam": "click",
+   "notiz": "letzter Klick"
+  },
+  {
+   "id": "au-endkarte",
+   "ereignis": "endkarte",
+   "fam": "subthud",
+   "variante": "b",
+   "semis": -4,
+   "peak": -14,
+   "dauer": 1.0,
+   "fade_out": 0.6,
+   "notiz": "dezenter Sub unter dem Schluss"
+  }
+ ]
+}

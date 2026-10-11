@@ -1,0 +1,28 @@
+{
+  "_hinweis": "Marke eines Laufs: <lauf>/produkt/marke.json. Schreibt scripts/produkt-lesen.mjs aus der Website des Produkts (geprueft: false); sonst von Hand aus Brand-Datei oder Website füllen. Farben mit der Pipette auf echten Flächen ablesen, nie raten. scripts/marke-tokens.mjs macht daraus lib/marke.css (nur Farben und Schrift; Qualitätswerte bleiben fest). Felder mit _ am Anfang sind Erklärungen und werden ignoriert.",
+  "schema": 1,
+  "name": "Nordlicht Notes",
+  "quelle": "https://beispiel.invalid",
+  "stand": "2026-10-09",
+  "geprueft": false,
+  "_geprueft": "true erst, wenn der Nutzer die Marke im Vorschlag (Station 4) bestätigt hat oder sie aus einer Brand-Datei stammt",
+  "farben": {
+    "hintergrund": "#F3F5F6",
+    "hintergrundDunkel": "#0F1419",
+    "karte": "#FFFFFF",
+    "tinte": "#0F1419",
+    "gedaempft": "#7C8792",
+    "akzent": "#0F9A78",
+    "_herkunft": "je Farbe kurz, woher sie stammt (Seite, Fläche), z. B. akzent: Haupt-Button der Startseite"
+  },
+  "schrift": {
+    "familie": "Inter",
+    "datei": null,
+    "_datei": "Pfad relativ zum Lauf, z. B. assets/schrift/marke.woff2; nur mit Lizenz für Video. Ohne Datei nutzt der Film den Ersatz Inter.",
+    "kandidat": null,
+    "gewicht": 600
+  },
+  "logo": "produkt/logo.svg",
+  "_logo": "SVG bevorzugt, Pfad relativ zum Lauf; aus der Website gelesen heißt: im Vorschlag bestätigen lassen",
+  "hinweise": []
+}

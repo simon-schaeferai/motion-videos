@@ -1,2 +1,4 @@
 pillow>=10
 numpy>=1.24
+scipy>=1.10  # scripts/ton/ (Musikschnitt, Tonspur, Lautheit)
+opencv-python-headless>=4.8  # Pflicht: Bildfluss in scripts/qualitaet.py --bewegung (R5 ★ Stand, R6 Drift); ohne OpenCV ist R5 ★ nicht prüfbar

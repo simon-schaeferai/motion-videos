@@ -1,0 +1,79 @@
+<!doctype html>
+<!--
+  CTA-Band unter dem Film (Vorlage, Teil des Skills motion-videos, MIT).
+  Wird von scripts/cta-band.sh befüllt und per Headless-Chrome als PNG gerendert, dann mit ffmpeg
+  unter den Film gestapelt (vstack). Platzhalter in doppelten geschweiften Klammern setzt das Skript:
+    BREITE, HOEHE        Pixelmaß des Bandes (Breite = Filmbreite)
+    TEXT, UNTERZEILE     Aufforderung und optionale zweite Zeile (bereits HTML-maskiert)
+    BILD, BILD_ANZEIGE   optionales rundes Bild als data-URI, „flex“ oder „none“
+    FARBE_VON, FARBE_BIS Verlauf des Bandes, TEXTFARBE, SCHRIFT (CSS font-family)
+  Alle Maße hängen an --h (Bandhöhe), damit das Band bei 1080 und 1920 Breite gleich aussieht.
+  Eigene Marke: Farben und Schrift über die Schalter von cta-band.sh setzen, nicht hier fest eintragen.
+-->
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<style>
+  :root {
+    --h: {{HOEHE}}px;
+    --von: {{FARBE_VON}};
+    --bis: {{FARBE_BIS}};
+    --text: {{TEXTFARBE}};
+  }
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: {{BREITE}}px;
+    height: {{HOEHE}}px;
+    overflow: hidden;
+    background: var(--bis);
+  }
+  .band {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: calc(var(--h) * 0.2);
+    padding: 0 calc(var(--h) * 0.4);
+    background: linear-gradient(135deg, var(--von), var(--bis));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    color: var(--text);
+    font-family: {{SCHRIFT}};
+    font-weight: 700;
+    font-size: calc(var(--h) * 0.36);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .bild {
+    display: {{BILD_ANZEIGE}};
+    flex: none;
+    width: calc(var(--h) * 0.7);
+    height: calc(var(--h) * 0.7);
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 0 0 calc(var(--h) * 0.025) rgba(255, 255, 255, 0.9);
+  }
+  .unterzeile {
+    font-weight: 500;
+    font-size: calc(var(--h) * 0.27);
+    opacity: 0.9;
+  }
+  .unterzeile:empty { display: none; }
+  .symbol {
+    flex: none;
+    width: calc(var(--h) * 0.37);
+    height: calc(var(--h) * 0.37);
+  }
+</style>
+</head>
+<body>
+  <div class="band">
+    <img class="bild" src="{{BILD}}" alt="">
+    <span class="text">{{TEXT}}</span>
+    <span class="unterzeile">{{UNTERZEILE}}</span>
+    <svg class="symbol" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 4v-4A1.5 1.5 0 0 1 4 14.5z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+  </div>
+</body>
+</html>

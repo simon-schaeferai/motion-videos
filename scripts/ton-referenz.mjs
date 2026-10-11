@@ -21,9 +21,9 @@ Return Markdown with these sections:
 5. RECIPE: 8-12 bullet points how to rebuild a similar soundtrack (what to search/generate, how to vary repeats, where music should build/drop).`;
 
 try {
-  const { text, model } = await analyseVideo(FILE, PROMPT, { temperature: 0.2, maxOutputTokens: 16000 });
+  const { text, model, ersatzFuer } = await analyseVideo(FILE, PROMPT, { temperature: 0.2, maxOutputTokens: 16000 });
   await mkdir(dirname(OUT), { recursive: true });
-  await writeFile(OUT, `<!-- ton-referenz.mjs · ${model} · Quelle: ${FILE} -->\n\n${text}\n`);
+  await writeFile(OUT, `<!-- ton-referenz.mjs · ${model}${ersatzFuer ? ` (Ersatz für ${ersatzFuer})` : ''} · Quelle: ${FILE} -->\n\n${text}\n`);
   console.log('ok', OUT, text.length, 'Zeichen');
 } catch (e) {
   console.error('Fehler:', e.message);

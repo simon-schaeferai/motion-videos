@@ -1,0 +1,42 @@
+{
+ "_hinweis": "Ereignisliste, Schema 1. Liegt als <lauf>/ereignisse.json im Lauf-Ordner und wird aus dem Code exportiert (templates/lib: MV.events, Export mit tools/ereignisse.mjs), nie von Hand aus Referenz- oder Altzeiten geschrieben. Einzige Zeitquelle für Ton-Cues (ton_bauen.py), Prüfungen (qualitaet.py, ton_pruefen.py) und Hörtest (hoertest.mjs). Felder mit _ werden ignoriert. Eine nackte Liste [ … ] statt des Objekts lesen alle Werkzeuge auch; dann fehlen fps, BPM und Takt-Eins (bei qualitaet.py als --bpm/--takt0 angeben).",
+ "_felder": {
+  "schema / fps / bpm / takt0": "Kopf: Schema-Version (1), Bildrate, Tempo des Taktrasters, Filmzeit der ersten Zählzeit in s. Bringt der Nutzer Musik mit, sind bpm und takt0 die der Musik (Takt-Karte, references/05-bau-probe-parallel.md §2), nicht die der Referenz.",
+  "briefLaenge": "Optional im Kopf: Filmlänge laut Brief (G1), wörtlich wie der Nutzer sie nannte: Zahl in s (qualitaet.py prüft ± 10 %) oder Spanne [15, 20] bzw. \"15-20\" (gilt wörtlich). Setzt MV.configure({ briefLaenge }); sonst qualitaet.py --brief 25 bzw. --brief 15-20.",
+  "id": "Pflicht. Eindeutig im Film (Cues verweisen darauf).",
+  "t": "Pflicht. Sekunden Filmzeit, auf einem ganzen Frame (Raster-Funktionen der Bibliothek).",
+  "typ": "Pflicht. Einer von: aussage, hit, schnitt, punch, klick, tippen, pop, linie, knoten, puls, morph, ki, endkarte, ausklang, stille, ende, deko, bildwelt.",
+  "frame / zaehlzeit": "Optional. Frame-Index (round(t · fps)) und Lage im Taktraster (Zählzeit als Dezimalzahl ab takt0).",
+  "beat": "Optional. Name des Beats aus dem Blueprint (z. B. \"B2 Ergebnis\"); Bildtitel im Ein-Blick-Bogen. Nie eine Zahl: die Rasterlage steht in zaehlzeit.",
+  "text": "Bei aussage Pflicht (der Satz), sonst kurze Notiz.",
+  "lesbarAb / ausstiegAb": "Pflicht bei aussage, bei hit nur als Hit-Statement (dann mit text). lesbarAb = alle Wörter voll da (Lage, Deckung, Tinte ≥ 97 %); ausstiegAb = Beginn des Ausstiegs oder Schnitt, null = bis Filmende. Lesezeit-Soll max(1,2 s; 0,4 s + 0,25 s je Wort).",
+  "woerter / lesezeitSoll / lesezeitIst": "Optional, schreibt MV.sayEvents. Wörter = Teile mit Buchstabe oder Ziffer („&“ zählt nicht).",
+  "art / richtung": "Optional bei schnitt: hart | whip | match | bewegung; Richtung bei whip.",
+  "bis": "Pflicht bei stille: Ende der gewollten Ruhe in Bild und Ton (von Stand- und Loch-Prüfungen ausgenommen).",
+  "begruendung": "Optional bei endkarte: warum die Endkarte länger als 2 Takte steht (nur mit Ausklang). Ohne Begründung ist eine längere Endkarte in qualitaet.py --fuellung ein ✗.",
+  "Typen": "aussage (Satz in Lesezone oder Hit-Stufe) · hit (größtes Bild-Ereignis, Schnitt auf Schwarz; mit lesbarAb ein Hit-Statement) · schnitt (Szenengrenze) · punch (Punch-in der Kamera) · klick (Cursor-Klick oder Tap) · tippen · pop (Element erscheint) · linie, knoten, puls (Icon-Kette) · morph · ki (KI-Moment) · endkarte (ab hier keine Bewegungsprüfung) · ausklang (ab hier darf der Ton leiser werden) · stille (mit bis) · ende (Filmende) · deko (mit bis, bereich, grund: kleine Schrift, die nicht gelesen werden soll) · bildwelt (mit art, am Anfang jeder Szene: fenster, handy, geraet, produktfoto, foto, website, daten, aussage, logo, kachel; „kachel“ = Karte auf leerem Grund, höchstens ein Drittel der Szenen; Text „wie Vorbild“, wenn das Vorbild dort selbst eine Kachel zeigt).",
+  "Wer liest was": "qualitaet.py: aussage/hit (R1 bis R3, Aussage-Fenster in der Bildfüllung R8), klick und punch im Lesefenster (R3), schnitt, endkarte (mit begruendung, R8), bildwelt (R8 Bildwelten), ausklang, stille, deko (R4 Lesetext), beat, Kopf briefLaenge (R12). ton_bauen.py: id und t (Cue-Anker). ton_pruefen.py: t, typ, stille, ausklang. hoertest.mjs: t, typ, text, lesbarAb, ausstiegAb.",
+  "bereich / grund": "Pflicht bei deko (dazu bis): Rechteck [x0, y0, x1, y1] in Ausgabe-px und Grund. Schrift darin darf kleiner als 32 px sein (Fenstertitel, Mockup-Inhalt, Fototext), qualitaet.py --text nimmt sie aus. Alles, was gelesen werden soll, ist ≥ 32 px."
+ },
+ "schema": 1,
+ "fps": 30,
+ "bpm": 120,
+ "takt0": 0.0,
+ "ereignisse": [
+  {"id": "welt-b1", "t": 0.0, "frame": 0, "typ": "bildwelt", "art": "fenster", "beat": "B1 Einstieg", "text": "Desktop-Fenster mit dem echten Dashboard"},
+  {"id": "toggle", "t": 3.0, "frame": 90, "typ": "klick", "beat": "B1 Einstieg", "text": "Schalter rastet ein"},
+  {"id": "karte-1", "t": 4.5, "frame": 135, "typ": "pop", "beat": "B1 Einstieg", "text": "erste Karte erscheint"},
+  {"id": "deko-fenstertitel", "t": 4.5, "frame": 135, "typ": "deko", "bis": 8.0, "bereich": [360, 250, 1560, 320], "grund": "Fenstertitel der App-Karte, nicht zum Lesen", "beat": "B1 Einstieg"},
+  {"id": "tippen-1", "t": 5.2, "frame": 156, "typ": "tippen", "beat": "B1 Einstieg", "text": "Prompt wird getippt (0,8 s)"},
+  {"id": "schnitt-b2", "t": 8.0, "frame": 240, "typ": "schnitt", "art": "hart", "beat": "B2 Ergebnis", "text": "harter Schnitt auf das Ergebnis"},
+  {"id": "welt-b2", "t": 8.0, "frame": 240, "typ": "bildwelt", "art": "handy", "beat": "B2 Ergebnis", "text": "Ergebnis auf dem Handy"},
+  {"id": "aussage-1", "t": 10.0, "frame": 300, "typ": "aussage", "beat": "B2 Ergebnis", "text": "Kurze Aussage auf einer Zeile.", "woerter": 5, "lesbarAb": 10.4, "ausstiegAb": 12.5, "lesezeitSoll": 1.65, "lesezeitIst": 2.1},
+  {"id": "ki-1", "t": 13.0, "frame": 390, "typ": "ki", "beat": "B3 Automatik", "text": "KI-Moment: Generieren startet"},
+  {"id": "hit-1", "t": 16.0, "frame": 480, "typ": "hit", "beat": "B4 Höhepunkt", "text": "größtes Bild-Ereignis (Schnitt auf Schwarz)"},
+  {"id": "stille-1", "t": 16.0, "frame": 480, "typ": "stille", "bis": 16.5, "beat": "B4 Höhepunkt", "text": "gewollte Ruhe nach dem Hit"},
+  {"id": "klick-final", "t": 23.5, "frame": 705, "typ": "klick", "beat": "B5 Schluss", "text": "letzter Klick"},
+  {"id": "endkarte", "t": 26.0, "frame": 780, "typ": "endkarte", "beat": "B5 Schluss", "text": "Logo-Endkarte (bis Filmende 2 Takte bei 120 BPM)"},
+  {"id": "ausklang", "t": 26.0, "frame": 780, "typ": "ausklang", "beat": "B5 Schluss", "text": "Musik klingt natürlich aus"},
+  {"id": "ende", "t": 30.0, "frame": 900, "typ": "ende", "beat": "B5 Schluss", "text": "Filmende"}
+ ]
+}

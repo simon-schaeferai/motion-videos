@@ -10,9 +10,13 @@ Anbieter sind austauschbar. Nimm, was der Nutzer angeschlossen hat (MCP-Connecto
 | Echte Menschen-/Produkt-Clips (Footage) | Videomodell (z. B. Seedance, Kling, Veo) über den angeschlossenen Anbieter | Standbild mit Push-in (oft gleichwertig, kostenlos) | ganze Szenen mit UI |
 | Musik | eigene, lizenzierte Bibliothek, falls vorhanden und ein Track Stil/Tempo trifft; sonst Musikgenerator (Empfehlung: Google Lyria, 30 bis 180 s) | andere Musikgeneratoren (z. B. ElevenLabs Music) | Chart-Songs oder ungeklärte Lizenzen für Firmenfilme |
 | Effekte (Klicks, Pops, Swooshes, Tippen, Sparkle, Chime, Sub-Hits) | **SFX-Generator, je Typ 4 Varianten** (Empfehlung: ElevenLabs Sound Effects) | eigene, lizenzierte SFX-Bibliothek für Raumton/Riser | ein einzelnes Sample für viele Einsätze |
-| Ton-/Video-Analyse | `scripts/ton-referenz.mjs` + `scripts/video-verstehen.mjs` (Gemini) | anderes video-fähiges Modell | das Video nur im Browser „anschauen“ |
+| Ton-/Video-Analyse, Hörtest | `scripts/ton-referenz.mjs` + `scripts/video-verstehen.mjs` + `scripts/hoertest.mjs` (Gemini, Upload über die Gemini Files API mit Löschung) | anderes video-fähiges Modell | das Video nur im Browser „anschauen“; Medien über öffentliche Bucket-URLs an ein Modell reichen |
 
 Nicht jede Bild/Video-Plattform kann Musik oder SFX (manche liefern nur Sprache). Vorher im Werkzeugkatalog des Anbieters nachsehen.
+
+Integrations-Logos sind Code (SVG aus Originalformen), nie Generierung. Kundenmaterial (Mails, Fotos, Screens) geht an ein Analyse-Modell nur über einen Weg, der die Datei danach löscht und keine öffentliche URL erzeugt.
+
+<!-- Warum Upload-Weg: In einem internen Vorläufer des Hörtests lagen Ausschnitte mit Kundenmaterial unter einer öffentlichen Storage-URL; die Files API mit Löschung vermeidet das. -->
 
 ## Anbieterwahl (Kurzform)
 1. Ein ausdrücklicher Anbieterwunsch des Nutzers gilt.

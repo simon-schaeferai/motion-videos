@@ -1,0 +1,108 @@
+/* motion-videos · lib/tokens.css (MIT)
+   Tokens und Typo-System für alle Blöcke. Einmal in index.html laden (<link rel="stylesheet" href="lib/tokens.css">).
+
+   MARKE JE NUTZER: Farben und Schrift kommen aus <lauf>/produkt/marke.json (scripts/produkt-lesen.mjs oder
+   templates/marke.vorlage.json). scripts/marke-tokens.mjs schreibt daraus lib/marke.css, die NACH dieser Datei geladen
+   wird (direkt vor </head>) und nur --mv-bg … --mv-font überschreibt. Die Qualitätswerte hier (Typo-Stufen,
+   --mv-read-min 32 px, Radien, Schatten) und in core.js (Lesezeit, Easing, Übergänge) bleiben für jede Marke fest.
+
+   SO FÜLLEN, falls ohne marke.json (vor der Probe, aus der Marke ableiten, nie raten):
+   1. Farben: Hintergrund, Tinte, Akzent aus Website/Brand-Datei der Marke (Pipette auf echte Flächen, nicht schätzen).
+   2. Verläufe: senkrecht, Tinte dunkel -> mittel -> hell, Akzent dunkel -> Marke -> hell. Stopps 26 % / 67 % / 109 %
+      gelten für den Wortkasten mit Zeilenhöhe 1,15. Nur für Aussagen ab 64 Ausgabe-px, nie für Produkt-UI.
+   3. Schrift: Markenschrift als lokale Datei mit @font-face in index.html (sonst meldet lint font_family_without_font_face).
+   4. Raster (--mv-ref-w/h, --mv-scale) setzt MV.configure() aus lib/core.js; die Werte hier sind nur der Standard.
+   Platzhalter unten sind neutral und gehören zu keiner Marke. Ein Film überschreibt sie in einem eigenen :root-Block. */
+
+:root {
+  /* ---------- Raster (MV.configure schreibt diese Werte) ---------- */
+  --mv-ref-w: 1920;   /* Breite des Bau-Rasters in px (z. B. Pixel der Referenz) */
+  --mv-ref-h: 1080;
+  --mv-scale: 1;      /* Ausgabebreite / Rasterbreite, z. B. 1920 / 1280 = 1.5 */
+
+  /* ---------- Farben (Platzhalter, aus der Marke ableiten) ---------- */
+  --mv-bg: #f4f4f3;            /* heller Grund */
+  --mv-bg-dark: #0b0b0c;       /* dunkler Grund */
+  --mv-card: #ffffff;
+  --mv-ink: #111113;           /* Tinte, Linien der Kette */
+  --mv-label: #3a3a3d;         /* Stufe L */
+  --mv-muted: #8a8a8f;         /* Stufe S, Zweitzeilen */
+  --mv-ui-text: rgba(0, 0, 0, 0.86);
+  --mv-ui-muted: #77777c;
+  --mv-accent: #3d6bff;        /* Akzent (Knoten, Impulse, Schreibkopf) */
+  --mv-acc-hi: #b9cbff;        /* Lichtlauf über dem Akzent, heller Grund */
+  --mv-acc-hi-dark: #e3eaff;   /* Lichtlauf, dunkler Grund */
+  --mv-say-gray: #9a9a9f;      /* graue Vorstufe im Reveal, heller Grund */
+  --mv-say-gray-dark: rgba(255, 255, 255, 0.32);
+  --mv-say-gray-sub: #c4c4c8;
+
+  /* ---------- Verläufe (senkrecht, background-clip: text) ---------- */
+  --mv-ink-grad: linear-gradient(180deg, #111113 26%, #434346 67%, #8a8a8f 109%);
+  --mv-acc-grad: linear-gradient(180deg, #2449d8 26%, #3d6bff 67%, #8fa9ff 109%);
+  --mv-silver-grad: linear-gradient(180deg, #ffffff 26%, #c9c9ce 67%, #8a8a8f 109%);
+
+  /* ---------- Radien (Raster-px) ---------- */
+  --mv-r-card: 22px;
+  --mv-r-thumb: 10px;
+  --mv-r-tile: 24%;
+
+  /* ---------- Schatten (mehrlagig, weich) ---------- */
+  --mv-shadow-card: 0 20px 60px rgba(20, 20, 20, 0.07), 0 2px 8px rgba(20, 20, 20, 0.03), 0 0 0 1px rgba(0, 0, 0, 0.025);
+  --mv-shadow-float: 0 6px 18px rgba(0, 0, 0, 0.12);
+
+  /* ---------- Lesetext-Minimum (09 §2) ---------- */
+  --mv-read-min: 32px;  /* jede Zeile, die gelesen werden soll (Terminal, Code, UI, Stütz- und CTA-Zeile), bei 1080 p;
+                           Grund: 16:9 erscheint im Handy-Feed auf ca. 1/3 Größe. Kleiner nur als Deko mit deko-Ereignis. */
+
+  /* ---------- Schrift ---------- */
+  --mv-font: system-ui, -apple-system, "Segoe UI", sans-serif; /* Display-Schnitt der Marke eintragen */
+  --mv-font-ui: var(--mv-font);
+}
+
+/* ---------- Grundgerüst: Szene, Stage (skaliert Raster -> Ausgabe), Ebene (Kamera) ---------- */
+.mv-scene { position: absolute; inset: 0; overflow: hidden; background: var(--mv-bg); font-family: var(--mv-font); color: var(--mv-ink); }
+.mv-scene.mv-dark { background: var(--mv-bg-dark); color: #ffffff; }
+.mv-stage {
+  position: absolute; left: 0; top: 0;
+  width: calc(var(--mv-ref-w) * 1px); height: calc(var(--mv-ref-h) * 1px);
+  transform-origin: 0 0; transform: scale(var(--mv-scale));
+}
+.mv-layer { position: absolute; left: 0; top: 0; width: calc(var(--mv-ref-w) * 1px); height: calc(var(--mv-ref-h) * 1px); transform-origin: 0 0; }
+
+/* ---------- Typo-Stufen ----------
+   H und Z (Aussagen) baut MV.sayHTML mit Größe, Gewicht, Laufweite und Position aus MV.config.type.
+   Die Klassen hier sind für Text ohne Reveal. Größen in Ausgabe-px, im Raster per --mv-scale umgerechnet.
+   H 120 px / 600 / -0,035 em · Z 84 px / 600 / -0,03 em · S 32 px / 400 / -0,005 em · L 32 px / 500 / -0,01 em ·
+   UI wie das Produkt, aber Lesetext nie unter --mv-read-min (32 px) · L2 24 px nur für Deko (deko-Ereignis Pflicht) */
+.mv-type-H { font-size: calc(120px / var(--mv-scale)); font-weight: 600; letter-spacing: -0.035em; line-height: 1.02; }
+.mv-type-Z { font-size: calc(84px / var(--mv-scale)); font-weight: 600; letter-spacing: -0.03em; line-height: 1.15; }
+.mv-type-S { font-size: calc(32px / var(--mv-scale)); font-weight: 400; letter-spacing: -0.005em; line-height: 1.15; color: var(--mv-muted); }
+.mv-type-L { font-size: calc(32px / var(--mv-scale)); font-weight: 500; letter-spacing: -0.01em; line-height: 1.2; color: var(--mv-label); }
+.mv-type-L2 { font-size: calc(24px / var(--mv-scale)); font-weight: 400; letter-spacing: 0; line-height: 1.2; color: var(--mv-muted); }
+.mv-type-UI { font-family: var(--mv-font-ui); color: var(--mv-ui-text); } /* UI-Text bleibt UI-Text: nie Verlauf; Zeilen, die gelesen werden sollen, ≥ var(--mv-read-min) */
+
+/* ---------- Material der Aussagen: senkrechter Verlauf, nie text-shadow oder Glow ----------
+   Farbe nie über style.color animieren (Füllung ist transparent); Ein- und Ausblenden über opacity, Maske, Filter. */
+.mv-ink, .mv-acc, .mv-silver {
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  text-shadow: none;
+}
+.mv-ink { background-image: var(--mv-ink-grad); }
+.mv-acc { background-image: var(--mv-acc-grad); }
+.mv-silver { background-image: var(--mv-silver-grad); }
+/* unter 64 Ausgabe-px flach (MV.sayHTML wählt automatisch) */
+.mv-flat-ink { color: var(--mv-ink); }
+.mv-flat-white { color: #ffffff; }
+.mv-flat-acc { color: var(--mv-accent); }
+.mv-flat-sub { color: var(--mv-muted); }
+
+/* ---------- Bausteine ---------- */
+.mv-card { position: absolute; background: var(--mv-card); border-radius: var(--mv-r-card); box-shadow: var(--mv-shadow-card); }
+.mv-cursor { position: absolute; }

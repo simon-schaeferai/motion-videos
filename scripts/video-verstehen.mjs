@@ -21,9 +21,9 @@ Return Markdown with these sections:
 6. VOICE: is there voice-over or speech? If yes, a short summary with timestamps (no full transcript).`;
 
 try {
-  const { text, model } = await analyseVideo(FILE, PROMPT, { temperature: 0.2, maxOutputTokens: 16000 });
+  const { text, model, ersatzFuer } = await analyseVideo(FILE, PROMPT, { temperature: 0.2, maxOutputTokens: 16000 });
   await mkdir(dirname(OUT), { recursive: true });
-  await writeFile(OUT, `<!-- video-verstehen.mjs · ${model} · Quelle: ${FILE} · Grob-Beats, nicht als Schnittliste verwenden -->\n\n${text}\n`);
+  await writeFile(OUT, `<!-- video-verstehen.mjs · ${model}${ersatzFuer ? ` (Ersatz für ${ersatzFuer})` : ''} · Quelle: ${FILE} · Grob-Beats, nicht als Schnittliste verwenden -->\n\n${text}\n`);
   console.log('ok', OUT, text.length, 'Zeichen');
 } catch (e) {
   console.error('Fehler:', e.message);

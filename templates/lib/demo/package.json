@@ -1,0 +1,13 @@
+{
+  "name": "motion-videos-lib-demo",
+  "private": true,
+  "type": "module",
+  "description": "Demo der Bibliothek templates/lib (fiktive Marke Nordlicht Notes). lib/ ist eine Kopie von ../, nie hier ändern.",
+  "scripts": {
+    "lib": "mkdir -p lib && cp ../core.js ../camera.js ../motion.js ../tokens.css lib/",
+    "check": "npm run lib && bash ../../../scripts/hf.sh check",
+    "ereignisse": "npm run lib && node tools/ereignisse.mjs . --out ereignisse.json",
+    "render": "npm run lib && bash ../../../scripts/sperre.sh motion-skill -- bash ../../../scripts/hf.sh render -o renders/demo.mp4 --workers 2 --quiet",
+    "bogen": "bash ../../../scripts/sperre.sh motion-skill -- node tools/ereignisse.mjs . --bogen renders/demo.mp4 renders/ein-blick.png"
+  }
+}
